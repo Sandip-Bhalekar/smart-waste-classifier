@@ -807,29 +807,49 @@ st.markdown('<div class="section-kicker">Start a new scan</div>', unsafe_allow_h
 st.subheader("Upload your waste image")
 st.markdown('<p class="subtle">For best results, use a clear, well-lit photo where the waste is visible and the background is simple.</p>', unsafe_allow_html=True)
 
-uploaded_file = st.file_uploader(
-    "Choose an image (JPG, JPEG, PNG or WEBP)",
-    type=["jpg", "jpeg", "png", "webp"],
-    help="Use one image at a time. Mixed-waste photos may be harder to classify accurately.",
+input_mode = st.radio(
+    "Choose how to add your waste image",
+    ["📁 Upload Image", "📸 Use Camera"],
+    horizontal=True,
     label_visibility="collapsed",
+    key="image_input_mode",
 )
 
-if uploaded_file is None:
+uploaded_file = None
+camera_file = None
+
+if input_mode == "📁 Upload Image":
+    uploaded_file = st.file_uploader(
+        "Choose an image (JPG, JPEG, PNG or WEBP)",
+        type=["jpg", "jpeg", "png", "webp"],
+        help="Use one image at a time. Mixed-waste photos may be harder to classify accurately.",
+        label_visibility="collapsed",
+        key="waste_image_uploader",
+    )
+    image_source = uploaded_file
+else:
+    camera_file = st.camera_input(
+        "Capture a picture of your waste",
+        key="waste_camera_input",
+    )
+    image_source = camera_file
+
+if image_source is None:
     st.markdown(
         '<div class="card empty"><div class="big">🖼️</div><h3>Your analysis will appear here</h3>'
-        '<p class="subtle">Upload an image above to see the predicted materials and disposal advice.</p></div>',
+        '<p class="subtle">Upload an image or capture one with your camera to see the predicted materials and disposal advice.</p></div>',
         unsafe_allow_html=True,
     )
     render_footer("EcoSort · Student project prototype · Always check local recycling rules.")
 else:
     try:
-        image = Image.open(uploaded_file).convert("RGB")
+        image = Image.open(image_source).convert("RGB")
         scan_left, scan_right = st.columns([0.9, 1.1], gap="large")
 
         with scan_left:
             st.markdown('<div class="section-kicker">01 / Your image</div>', unsafe_allow_html=True)
             st.image(image, use_container_width=True)
-            st.caption(f"📎 {uploaded_file.name} · {image.width} × {image.height} px")
+            st.caption(f"📎 {getattr(image_source, 'name', 'Camera capture')} · {image.width} × {image.height} px")
             analyze = st.button("✨ Analyze waste", type="primary", use_container_width=True)
 
         if analyze:
@@ -846,7 +866,7 @@ else:
             )
             predictions = [row for row in results if row[1] >= row[2]]
 
-            image_path, upload_message = upload_image_to_supabase(image, uploaded_file.name, st.session_state.supabase_access_token)
+            image_path, upload_message = upload_image_to_supabase(image, getattr(image_source, "name", "camera_capture.png"), st.session_state.supabase_access_token)
             saved, save_message = save_prediction_to_supabase(
                 [material for material, score, threshold in predictions],
                 {material: round(score, 6) for material, score, threshold in results},
