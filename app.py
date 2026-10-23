@@ -77,8 +77,20 @@ st.markdown(
     [data-testid="stHeader"] { background:transparent !important; }
 
     /* ---------- Sidebar ---------- */
-    section[data-testid="stSidebar"] { background:linear-gradient(180deg,#0f3d2e 0%,#12281f 100%) !important; border-right:0; }
-    section[data-testid="stSidebar"] * { color:#dcebe2; }
+    section[data-testid="stSidebar"],
+    section[data-testid="stSidebar"] > div,
+    section[data-testid="stSidebar"] [data-testid="stSidebarContent"],
+    section[data-testid="stSidebar"] [data-testid="stSidebarUserContent"],
+    [data-testid="stSidebar"] { background:#0f3d2e !important; background-image:linear-gradient(180deg,#0f3d2e 0%,#12281f 100%) !important; border-right:0; }
+    section[data-testid="stSidebar"] * { color:#e8f3ec !important; }
+    section[data-testid="stSidebar"] [data-testid="stCaptionContainer"],
+    section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] *,
+    section[data-testid="stSidebar"] .brand-tag,
+    section[data-testid="stSidebar"] .side-mat small { color:#a9c7b6 !important; }
+    section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] button,
+    section[data-testid="stSidebar"] [data-testid="stSidebarCollapseButton"] svg { color:#fff !important; fill:#fff !important; }
+    [data-testid="stExpandSidebarButton"], [data-testid="stSidebarCollapsedControl"] { color:#0f3d2e !important; }
+    [data-testid="stToolbar"], [data-testid="stToolbar"] * , [data-testid="stHeader"] button { color:#1b2a23 !important; }
     section[data-testid="stSidebar"] h1, section[data-testid="stSidebar"] h2,
     section[data-testid="stSidebar"] h3, section[data-testid="stSidebar"] strong { color:#fff !important; }
     section[data-testid="stSidebar"] hr { border-color:rgba(255,255,255,.12) !important; }
