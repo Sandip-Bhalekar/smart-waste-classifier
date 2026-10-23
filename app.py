@@ -414,6 +414,49 @@ def render_history_dashboard():
         "Image stored": view["image_path"].apply(lambda p: "✅" if p else "—") if "image_path" in view else "—",
     })
     st.dataframe(table, use_container_width=True, hide_index=True)
+
+    # ---- Private image preview gallery
+    st.subheader("🖼️ Your saved prediction images")
+    st.markdown(
+        '<p class="subtle">Only images belonging to your signed-in account are shown. '
+        'Preview links expire automatically after 10 minutes.</p>',
+        unsafe_allow_html=True,
+    )
+
+    image_rows = view[view["image_path"].notna() & (view["image_path"].astype(str).str.strip() != "")].head(30)
+    if image_rows.empty:
+        st.info("No stored images are available for the selected history records.")
+    else:
+        st.caption(f"Showing up to 30 saved images ({len(image_rows)} in this view).")
+        gallery_cols = st.columns(3, gap="medium")
+        for index, (_, record) in enumerate(image_rows.iterrows()):
+            with gallery_cols[index % 3]:
+                image_url, image_error = create_signed_image_url(
+                    record["image_path"],
+                    st.session_state.supabase_access_token,
+                    expires_in=600,
+                )
+                with st.container(border=True):
+                    if image_url:
+                        st.image(image_url, use_container_width=True)
+                    else:
+                        st.info("Image preview unavailable.")
+                        st.caption(image_error or "No additional details.")
+
+                    predicted = record.get("predicted_materials", [])
+                    predicted_label = ", ".join(
+                        MATERIAL_GUIDANCE.get(m, {}).get("title", m) for m in predicted
+                    ) or "No category crossed threshold"
+                    st.markdown(f"**{predicted_label}**")
+
+                    created_at = record.get("created")
+                    if pd.notna(created_at):
+                        st.caption(
+                            "Analyzed " +
+                            created_at.tz_convert("Asia/Kolkata").strftime("%d %b %Y, %I:%M %p")
+                        )
+                    st.caption(f"Record ID: {record.get('id', '—')}")
+
     st.download_button("⬇️ Download as CSV", table.to_csv(index=False).encode("utf-8"), "ecosort_history.csv", "text/csv")
     st.caption("Material counts reflect model predictions, not verified ground truth or model accuracy.")
 
@@ -596,6 +639,76 @@ def image_to_bytes(image, suffix):
     image_format = {".jpg": "JPEG", ".jpeg": "JPEG", ".png": "PNG", ".webp": "WEBP"}[suffix]
     image.save(buffer, format=image_format)
     return buffer.getvalue()
+
+
+def create_signed_image_url(image_path, access_token, expires_in=600):
+    """Create a short-lived signed URL for an object in the private Storage bucket.
+
+    Older records may contain a bucket prefix or a leading slash in image_path,
+    so try a small set of normalized keys before returning the Storage error.
+    """
+    if not image_path:
+        return None, "No stored image path."
+
+    supabase_url, supabase_key = get_supabase_credentials()
+    if not supabase_url or not supabase_key:
+        return None, "Supabase credentials are not configured."
+
+    raw_path = str(image_path).strip().replace("\\", "/")
+    candidates = []
+    for candidate in (raw_path, raw_path.lstrip("/")):
+        candidate = candidate.strip("/")
+        if candidate.startswith("waste-images/"):
+            candidate = candidate[len("waste-images/"):]
+        if candidate.startswith("public/waste-images/"):
+            candidate = candidate[len("public/waste-images/"):]
+        if candidate and candidate not in candidates:
+            candidates.append(candidate)
+
+    headers = {
+        "apikey": supabase_key,
+        "Authorization": f"Bearer {access_token}",
+        "Content-Type": "application/json",
+    }
+    last_error = "No object key candidates were available."
+
+    for clean_path in candidates:
+        endpoint = f"{supabase_url}/storage/v1/object/sign/waste-images/{clean_path}"
+        try:
+            response = requests.post(
+                endpoint,
+                headers=headers,
+                json={"expiresIn": int(expires_in)},
+                timeout=12,
+            )
+            try:
+                data = response.json()
+            except ValueError:
+                data = {}
+
+            if not response.ok:
+                last_error = f"HTTP {response.status_code}: {(response.text or 'No details')[:350]}"
+                continue
+
+            signed_path = data.get("signedURL") or data.get("signedUrl")
+            if not signed_path:
+                last_error = "Supabase did not return a signed image URL."
+                continue
+            if signed_path.startswith(("http://", "https://")):
+                return signed_path, None
+            if not signed_path.startswith("/"):
+                signed_path = "/" + signed_path
+            if signed_path.startswith("/storage/v1/"):
+                return f"{supabase_url}{signed_path}", None
+            return f"{supabase_url}/storage/v1{signed_path}", None
+        except requests.RequestException:
+            last_error = "Could not reach Supabase Storage."
+
+    return None, (
+        "Could not create a private image link. The saved database path may not match "
+        f"the exact object key in the waste-images bucket. Saved path: {raw_path!r}. "
+        f"Last Storage response: {last_error}"
+    )
 
 
 def save_prediction_to_supabase(predicted_materials, prediction_scores, image_path, access_token, user_id):
