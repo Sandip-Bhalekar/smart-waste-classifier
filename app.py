@@ -74,7 +74,13 @@ st.markdown(
     .stApp [data-testid="stCaptionContainer"] { color:var(--ink); }
     .block-container { max-width:1200px; padding:2rem 2rem 3rem; }
     #MainMenu, footer { visibility:hidden; }
-    [data-testid="stHeader"] { background:transparent !important; }
+    [data-testid="stHeader"] { background:#f4f7f5 !important; border-bottom:1px solid #e0e9e3; }
+    /* Toolbar icons (Share, star, edit, GitHub, menu): solid dark so they never vanish on the light header. */
+    [data-testid="stToolbar"] svg, [data-testid="stToolbar"] svg *,
+    [data-testid="stHeader"] svg, [data-testid="stHeader"] svg * { fill:#1b2a23 !important; color:#1b2a23 !important; }
+    [data-testid="stToolbar"] a, [data-testid="stToolbar"] button,
+    [data-testid="stToolbar"] span, [data-testid="stToolbar"] p { color:#1b2a23 !important; }
+    [data-testid="stToolbar"] button:hover, [data-testid="stToolbar"] a:hover { background:#e3eee7 !important; border-radius:8px; }
 
     /* ---------- Sidebar ---------- */
     section[data-testid="stSidebar"],
