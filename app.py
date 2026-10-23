@@ -87,7 +87,25 @@ st.markdown(
     div[data-testid="stFileUploader"] { background:white; border:1.5px dashed #b8d5c3; border-radius:18px; padding:1rem; }
     div[data-testid="stFileUploader"] section { border:0; }
     div.stButton > button { border-radius: 10px; font-weight:700; min-height:2.8rem; }
-    div[data-testid="stExpander"] { background:white; border:1px solid #e2ebe4; border-radius:13px; }
+    div[data-testid="stExpander"] { background:#ffffff !important; border:1px solid #e2ebe4; border-radius:13px; }
+    /* Keep expanded recycling guidance readable in both light and dark Streamlit themes. */
+    div[data-testid="stExpander"] details,
+    div[data-testid="stExpander"] details > div,
+    div[data-testid="stExpander"] [data-testid="stExpanderDetails"],
+    div[data-testid="stExpander"] [data-testid="stMarkdownContainer"] {
+        background-color:#ffffff !important;
+        color:#1f2937 !important;
+    }
+    div[data-testid="stExpander"] [data-testid="stMarkdownContainer"] p,
+    div[data-testid="stExpander"] [data-testid="stMarkdownContainer"] span,
+    div[data-testid="stExpander"] [data-testid="stMarkdownContainer"] strong,
+    div[data-testid="stExpander"] [data-testid="stMarkdownContainer"] li,
+    div[data-testid="stExpander"] [data-testid="stMarkdownContainer"] div {
+        color:#1f2937 !important;
+    }
+    div[data-testid="stExpander"] [data-testid="stMarkdownContainer"] strong {
+        color:#153b2e !important;
+    }
     [data-testid="stMetric"] { background:white; border:1px solid #e2ebe4; border-radius:15px; padding:1rem; }
     .footer { border-top:1px solid #e1e9e3; margin-top:2.5rem; padding-top:1rem; color:#708078; font-size:.8rem; }
     </style>
