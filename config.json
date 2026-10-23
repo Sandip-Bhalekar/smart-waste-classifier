@@ -1,0 +1,13 @@
+{
+  "model": "EfficientNet-B0",
+  "classes": [
+    "glass",
+    "paper",
+    "plastic",
+    "cardboard",
+    "metal"
+  ],
+  "image_size": 224,
+  "pretraining_dataset": "TrashBusters/combined",
+  "excluded_class": "trash"
+}
