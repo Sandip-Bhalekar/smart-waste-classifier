@@ -81,6 +81,12 @@ st.markdown(
     [data-testid="stToolbar"] a, [data-testid="stToolbar"] button,
     [data-testid="stToolbar"] span, [data-testid="stToolbar"] p { color:#1b2a23 !important; }
     [data-testid="stToolbar"] button:hover, [data-testid="stToolbar"] a:hover { background:#e3eee7 !important; border-radius:8px; }
+    /* Stronger, version-proof header rules */
+    header, header[data-testid="stHeader"], [data-testid="stAppToolbar"], [data-testid="stDecoration"] { background:#f4f7f5 !important; background-image:none !important; }
+    header *, [data-testid="stAppToolbar"] *, [data-testid="stMainMenu"] *, [data-testid="stToolbarActions"] * {
+        color:#1b2a23 !important; fill:#1b2a23 !important; stroke:#1b2a23 !important; opacity:1 !important;
+    }
+    [data-testid="stDecoration"] { display:none; }
 
     /* ---------- Sidebar ---------- */
     section[data-testid="stSidebar"],
